@@ -1,10 +1,4 @@
 class sb:
-    """Utility conversion class for number systems.
-
-    Provides static methods to convert between binary, octal, decimal and
-    hexadecimal. Methods accept strings for non-decimal inputs (they may
-    include prefixes like '0b', '0o', '0x') and integers for decimal input.
-    """
 
     @staticmethod
     def decToBin(value: int) -> str:
@@ -70,9 +64,6 @@ class sb:
 
 
 def _demo():
-    """Simple demo prints to verify conversions. This runs only when the
-    module is executed directly and when the interactive menu isn't used.
-    """
     examples = [
         ("binary", '1011'),
         ("octal", '17'),
