@@ -12,7 +12,7 @@ class sb:
     def decToHex(value: int) -> str:
         return hex(int(value))[2:].upper()
 
-    # Binary -> Decimal, Hex
+    
     @staticmethod
     def binToDec(b: str) -> int:
         s = str(b).strip()
@@ -26,7 +26,7 @@ class sb:
     def binToHex(b: str) -> str:
         return sb.decToHex(sb.binToDec(b))
 
-    # Octal -> Decimal, Binary, Hex
+    
     @staticmethod
     def octToDec(o: str) -> int:
         s = str(o).strip()
@@ -44,7 +44,7 @@ class sb:
     def octToHex(o: str) -> str:
         return sb.decToHex(sb.octToDec(o))
 
-    # Hex -> Decimal, Binary, Octal
+    
     @staticmethod
     def hexToDec(h: str) -> int:
         s = str(h).strip()
@@ -81,7 +81,7 @@ def _demo():
 
 
 if __name__ == '__main__':
-    # When run directly, show a small interactive menu.
+  
     try:
         while True:
             print('\nSistem Bilangan - Pilih konversi:')
