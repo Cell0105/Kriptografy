@@ -67,6 +67,10 @@ class VigenereGUI:
         self.root.geometry("600x500")
         self.root.configure(bg="#2e2e2e")  # Tema gelap
         
+        # Label untuk Nama dan NPM (di atas tengah)
+        tk.Label(root, text="Nama: Marcel Filemon Naibaho", bg="#2e2e2e", fg="white", font=("Arial", 12, "bold")).pack(anchor='center', pady=5)
+        tk.Label(root, text="NPM: 230840026", bg="#2e2e2e", fg="white", font=("Arial", 12, "bold")).pack(anchor='center', pady=2)
+        
         # Label dan Entry untuk Kunci
         tk.Label(root, text="Masukkan Kunci (hanya huruf alfabet, contoh: LEMON):", bg="#2e2e2e", fg="white").pack(pady=5)
         self.key_entry = tk.Entry(root, width=50, bg="#4e4e4e", fg="white", insertbackground="white")
