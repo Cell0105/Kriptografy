@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import scrolledtext, messagebox
 
-# SBOX untuk AES
+
 SBOX = [
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
     0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
@@ -21,7 +21,7 @@ SBOX = [
     0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
 ]
 
-# RCON untuk 10 round
+
 RCON = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36]
 
 def text_to_hex(text):
@@ -58,7 +58,7 @@ def sub_word(word):
 def key_expansion(key_matrix, output_text):
     """Key Expansion untuk AES, dengan output ke GUI."""
     key_words = []
-    # Inisialisasi key_words dari key_matrix (K0)
+  
     for col in range(4):
         key_words.append([key_matrix[row][col] for row in range(4)])
     
@@ -67,27 +67,27 @@ def key_expansion(key_matrix, output_text):
     for i, word in enumerate(key_words):
         output_text.insert(tk.END, f"W{i}: {' '.join(f'{b:02X}' for b in word)}\n")
     
-    # Generate W4 hingga W43
+   
     for i in range(4, 44):
         temp = key_words[i-1].copy()
         output_text.insert(tk.END, f"\n--- Generating W{i} ---\n")
         output_text.insert(tk.END, f"temp = W{i-1} = {' '.join(f'{b:02X}' for b in temp)}\n")
         
         if i % 4 == 0:
-            # RotWord
+           
             temp = rot_word(temp)
             output_text.insert(tk.END, f"After RotWord: {' '.join(f'{b:02X}' for b in temp)}\n")
             
-            # SubWord
+           
             temp = sub_word(temp)
             output_text.insert(tk.END, f"After SubWord: {' '.join(f'{b:02X}' for b in temp)}\n")
             
-            # XOR dengan RCON
+           
             rcon_val = RCON[(i // 4) - 1]
             temp[0] ^= rcon_val
             output_text.insert(tk.END, f"After XOR with RCON[{ (i//4)-1 }] = {rcon_val:02X}: {' '.join(f'{b:02X}' for b in temp)}\n")
         
-        # XOR dengan W[i-4]
+       
         prev_word = key_words[i-4]
         output_text.insert(tk.END, f"W{i-4} = {' '.join(f'{b:02X}' for b in prev_word)}\n")
         new_word = [temp[j] ^ prev_word[j] for j in range(4)]
@@ -113,10 +113,10 @@ def process():
         messagebox.showerror("Error", "Plaintext dan Cipherkey harus tepat 16 karakter.")
         return
     
-    # Clear output
+    
     output_text.delete(1.0, tk.END)
     
-    # 1. Konversi ke HEX dan Matriks
+    
     hex_plain = text_to_hex(plaintext)
     hex_key = text_to_hex(cipherkey)
     matrix_plain = to_matrix_4x4(hex_plain)
@@ -130,17 +130,17 @@ def process():
     for row in matrix_key:
         output_text.insert(tk.END, " ".join(row) + "\n")
     
-    # 2. XOR (AddRoundKey)
+    
     matrix_xor = xor_matrices(matrix_plain, matrix_key)
     output_text.insert(tk.END, "\n=== HASIL XOR (AddRoundKey) ===\n")
     for row in matrix_xor:
         output_text.insert(tk.END, " ".join(row) + "\n")
     
-    # 3. Key Expansion
+
     key_matrix_int = [[int(matrix_key[r][c], 16) for c in range(4)] for r in range(4)]
     all_keys = key_expansion(key_matrix_int, output_text)
     
-    # Cetak K0 hingga K10
+    
     for r in range(11):
         start = r * 4
         end = start + 4
@@ -149,12 +149,12 @@ def process():
         for row in key_mat:
             output_text.insert(tk.END, " ".join(f"{x:02X}" for x in row) + "\n")
 
-# GUI Setup
+
 root = tk.Tk()
 root.title("AES Key Expansion GUI")
 root.geometry("800x600")
 
-# Input Fields
+
 tk.Label(root, text="Plaintext (16 karakter):").pack(pady=5)
 entry_plain = tk.Entry(root, width=50)
 entry_plain.pack()
@@ -163,10 +163,10 @@ tk.Label(root, text="Cipherkey (16 karakter):").pack(pady=5)
 entry_key = tk.Entry(root, width=50)
 entry_key.pack()
 
-# Process Button
+
 tk.Button(root, text="Process", command=process).pack(pady=10)
 
-# Output Area
+
 output_text = scrolledtext.ScrolledText(root, width=90, height=30)
 output_text.pack(pady=10)
 

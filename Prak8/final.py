@@ -1,4 +1,3 @@
-# ================= SBOX =================
 SBOX = [
     0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76,
     0xca,0x82,0xc9,0x7d,0xfa,0x59,0x47,0xf0,0xad,0xd4,0xa2,0xaf,0x9c,0xa4,0x72,0xc0,
@@ -39,28 +38,25 @@ INV_SBOX = [
 
 RCON = [0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1b,0x36]
 
-# ================= Padding =================
+
 def pad_pkcs7(text):
     data = [ord(c) for c in text]
     pad_len = 16 - (len(data) % 16)
     return data + [pad_len]*pad_len
 
 def unpad_pkcs7(data):
-    # Check if data is empty or if the last byte is an invalid pad length
+    
     if not data:
         return []
     pad_len = data[-1]
     if pad_len > 16 or pad_len == 0 or any(x != pad_len for x in data[-pad_len:]):
-        # Handle potential bad padding by returning original or raising error
-        # For simplicity, returning the data without assuming padding if it looks wrong
-        # In a robust implementation, this would raise a ValueError
-        return data # Or raise exception
+        return data 
         
     return data[:-pad_len]
 
 # ================= Helper AES =================
 def bytes_to_matrix(b):
-    # Converts 16-byte list to a 4x4 matrix (column-major order)
+   
     matrix = [[0] * 4 for _ in range(4)]
     for i in range(16):
         row = i % 4
@@ -69,7 +65,7 @@ def bytes_to_matrix(b):
     return matrix
 
 def matrix_to_bytes(m):
-    # Converts 4x4 matrix back to 16-byte list (column-major order)
+ 
     b = [0] * 16
     for i in range(16):
         row = i % 4
@@ -78,7 +74,7 @@ def matrix_to_bytes(m):
     return b
 
 def add_round_key(s,k):
-    # Both s and k are 4x4 matrices (list of lists)
+   
     return [[a^b for a,b in zip(x,y)] for x,y in zip(s,k)]
 
 def sub_bytes(s):
@@ -89,18 +85,18 @@ def inv_sub_bytes(s):
 
 def shift_rows(s):
     return [
-        s[0],                   # Row 0: 0 shift
-        s[1][1:]+s[1][:1],      # Row 1: 1 shift
-        s[2][2:]+s[2][:2],      # Row 2: 2 shifts
-        s[3][3:]+s[3][:3],      # Row 3: 3 shifts
+        s[0],                  
+        s[1][1:]+s[1][:1],      
+        s[2][2:]+s[2][:2],     
+        s[3][3:]+s[3][:3],      
     ]
 
 def inv_shift_rows(s):
     return [
-        s[0],                   # Row 0: 0 shift
-        s[1][-1:]+s[1][:-1],    # Row 1: 1 shift right (3 left)
-        s[2][-2:]+s[2][:-2],    # Row 2: 2 shifts right (2 left)
-        s[3][-3:]+s[3][:-3],    # Row 3: 3 shifts right (1 left)
+        s[0],                  
+        s[1][-1:]+s[1][:-1],    
+        s[2][-2:]+s[2][:-2],    
+        s[3][-3:]+s[3][:-3],   
     ]
 
 def xtime(a):
@@ -117,31 +113,6 @@ def mul(a,b):
     return r
 
 def mix_single_column(c):
-    # Matrix multiplication with constant matrix [02, 03, 01, 01]
-    # This implementation is incorrect for column-major state in matrix_to_bytes
-    # Let's use the provided multiplication logic which is based on the matrix:
-    # [02, 03, 01, 01]
-    # [01, 02, 03, 01]
-    # [01, 01, 02, 03]
-    # [03, 01, 01, 02]
-    # But it should be:
-    # a = c # [s0c, s1c, s2c, s3c]
-    # b = [xtime(x) for x in a]
-    # return [
-    #     b[0] ^ a[3] ^ a[2] ^ b[1] ^ a[1], # 02*s0c ^ 03*s1c ^ 01*s2c ^ 01*s3c
-    #     b[1] ^ a[0] ^ a[3] ^ b[2] ^ a[2], # 01*s0c ^ 02*s1c ^ 03*s2c ^ 01*s3c
-    #     b[2] ^ a[1] ^ a[0] ^ b[3] ^ a[3], # 01*s0c ^ 01*s1c ^ 02*s2c ^ 03*s3c
-    #     b[3] ^ a[2] ^ a[1] ^ b[0] ^ a[0], # 03*s0c ^ 01*s1c ^ 01*s2c ^ 02*s3c
-    # ]
-    # Your provided logic:
-    # b=[xtime(x) for x in a]
-    # return [
-    #     b[0]^a[3]^a[2]^b[1]^a[1], # 02*a[0] ^ 03*a[1] ^ 01*a[2] ^ 01*a[3] - Correct!
-    #     b[1]^a[0]^a[3]^b[2]^a[2], # 01*a[0] ^ 02*a[1] ^ 03*a[2] ^ 01*a[3] - Correct!
-    #     b[2]^a[1]^a[0]^b[3]^a[3], # 01*a[0] ^ 01*a[1] ^ 02*a[2] ^ 03*a[3] - Correct!
-    #     b[3]^a[2]^a[1]^b[0]^a[0], # 03*a[0] ^ 01*a[1] ^ 01*a[2] ^ 02*a[3] - Correct!
-    # ]
-    # Keep the original implementation as it is correct for the standard matrix
     a = c
     b=[xtime(x) for x in a]
     return [
@@ -152,14 +123,13 @@ def mix_single_column(c):
     ]
 
 def mix_columns(s):
-    # s is row-major (state matrix rows are matrix rows)
-    # mix_single_column works on one column
-    cols = [list(c) for c in zip(*s)] # Transpose to get columns
+ 
+    cols = [list(c) for c in zip(*s)] 
     mixed_cols = [mix_single_column(c) for c in cols]
-    return [list(row) for row in zip(*mixed_cols)] # Transpose back
+    return [list(row) for row in zip(*mixed_cols)] 
 
 def inv_mix_single_column(c):
-    # Matrix multiplication with constant matrix [0E, 0B, 0D, 09]
+
     return [
         mul(c[0],14)^mul(c[1],11)^mul(c[2],13)^mul(c[3],9),
         mul(c[0],9)^mul(c[1],14)^mul(c[2],11)^mul(c[3],13),
@@ -168,35 +138,31 @@ def inv_mix_single_column(c):
     ]
 
 def inv_mix_columns(s):
-    # s is row-major (state matrix rows are matrix rows)
-    cols = [list(c) for c in zip(*s)] # Transpose to get columns
+   
+    cols = [list(c) for c in zip(*s)] 
     mixed_cols = [inv_mix_single_column(c) for c in cols]
-    return [list(row) for row in zip(*mixed_cols)] # Transpose back
+    return [list(row) for row in zip(*mixed_cols)] 
 
 def key_expansion(key):
-    # Key is a 16-byte list
-    # w is a list of 4-byte words (Nk words, then 4*(Nr+1-Nk) words)
-    # For AES-128 (Nk=4, Nr=10), we need 44 words (4*(10+1))
-    w=[key[i:i+4] for i in range(0,16,4)] # Initial 4 words
+
+    w=[key[i:i+4] for i in range(0,16,4)] 
     for i in range(4,44):
         t=w[i-1]
         if i%4==0:
-            t=t[1:]+t[:1] # RotWord
-            t=[SBOX[x] for x in t] # SubWord
+            t=t[1:]+t[:1] 
+            t=[SBOX[x] for x in t] 
             t[0]^=RCON[(i//4)-1]
         w.append([t[j]^w[i-4][j] for j in range(4)])
-    # Return as 11 round keys (each round key is a 4x4 matrix of 4-byte words)
-    # The round keys must be in column-major order to match bytes_to_matrix/matrix_to_bytes
+
     round_keys = []
     for i in range(0, 44, 4):
-        # Transpose the 4 word columns (w[i] to w[i+3]) into a 4x4 matrix
+
         round_key = [[w[i+j][k] for j in range(4)] for k in range(4)]
         round_keys.append(round_key)
     return round_keys
     
 def aes_encrypt_block(b,rk):
-    # b is 16-byte list (input block)
-    # rk is the expanded round keys (4x4 matrices)
+
     s=bytes_to_matrix(b)
     s=add_round_key(s,rk[0])
     for r in range(1,10):
@@ -222,24 +188,20 @@ def aes_decrypt_block(b,rk):
     s=add_round_key(s,rk[0])
     return matrix_to_bytes(s)
 
-# ... [Definisi SBOX, INV_SBOX, RCON, dan semua fungsi AES di atas] ...
-
-# ================= Input Dinamis =================
-# Baris di bawah ini adalah yang benar-benar meminta input dari pengguna.
 plaintext = input("Masukkan plaintext: ")
 key_input = input("Masukkan key (max 16 karakter): ")
 
-# Padding plaintext
+
 pb = pad_pkcs7(plaintext)
 
-# Key menjadi 16 byte
+
 kb = [ord(c) for c in key_input]
 if len(kb)<16: kb += [0]*(16-len(kb))
 elif len(kb)>16: kb = kb[:16]
 
 rk = key_expansion(kb)
 
-# ===== Enkripsi =====
+
 cipher=[]
 for i in range(0,len(pb),16):
     block = pb[i:i+16]
@@ -247,13 +209,13 @@ for i in range(0,len(pb),16):
 cipher_hex=''.join(f'{b:02X}' for b in cipher)
 print("\nCiphertext (hex):", cipher_hex)
 
-# ===== Dekripsi =====
+
 dec=[]
 for i in range(0,len(cipher),16):
     block = cipher[i:i+16]
     dec += aes_decrypt_block(block,rk)
 
-# Menangani unpadding dengan lebih aman
+
 dec_unpadded = unpad_pkcs7(dec)
 dec_text=''.join(chr(x) for x in dec_unpadded)
 print("Decrypted:", dec_text)
